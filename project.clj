@@ -10,10 +10,13 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :resource-paths [ ]
   :dependencies [[clojang "0.4.0-SNAPSHOT"]
+                 [clojang/agent "0.4.0-SNAPSHOT"]
                  [clojusc/twig "0.3.0"
                  [org.clojure/clojure "1.8.0"]]
   :main cljnode.core
   :source-paths ["src/clj"]
-  :target-path "target/"
+  :jvm-opts ["-Dnode.sname=cljnode"
+             "-Dnode.erlangcookie=.erlang.cookie"]
+  :java-agents [[clojang/agent "0.4.0-SNAPSHOT"]]
   :profiles {
     :uberjar {:aot :all}})
