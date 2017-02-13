@@ -1,3 +1,5 @@
+_build
+rebar.lock
 priv/*.jar
 priv/*.so
 .rebar/*
