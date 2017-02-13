@@ -13,8 +13,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn otp-bridge
-  "Creates the following in order to facilitate core.async communications with
-  the Clojure OTP server:
+  "This function creates the following in order to facilitate core.async
+  communications with the Clojure OTP server:
 
     1. A dedicated mbox for the OTP bridge (what receives messages from the
        OTP server)
@@ -33,7 +33,8 @@
      :channel bridge-chan}))
 
 (defn start
-  "A wrapper function for server/run that first sets the logging level."
+  "This function is wrapper function for server/run that first sets the
+  logging level."
   [ch]
   (logger/set-level! '[clojang cljnode] :info)
   (server/run ch))
@@ -65,6 +66,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn -main
+  "Entry point for the Clojure portion of the lfecljapp."
   [& args]
   (let [{:keys [command] :as server-data} (managed-server)]
     (if-let [value (async/<!! command)]
