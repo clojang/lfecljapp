@@ -7,11 +7,13 @@
   :dependencies [[clojang "0.4.0-SNAPSHOT"]
                  [clojang/agent "0.4.0-SNAPSHOT"]
                  [clojusc/twig "0.3.0"]
-                 [org.clojure/clojure "1.8.0"]]
-  :main cljnode.core
+                 [org.clojure/clojure "1.8.0"]
+                 [org.clojure/core.match "0.3.0-alpha4"]]
   :source-paths ["src/clj"]
-  :jvm-opts ["-Dnode.sname=cljnode"
-             "-Dnode.erlangcookie=.erlang.cookie"]
-  :java-agents [[clojang/agent "0.4.0-SNAPSHOT"]]
   :profiles {
-    :uberjar {:aot :all}})
+    :uberjar {
+      :aot :all}
+    :app {
+      :main cljnode.core
+      :jvm-opts ["-Dnode.sname=cljnode"]
+      :java-agents [[clojang/agent "0.4.0-SNAPSHOT"]]}})
