@@ -2,6 +2,7 @@
   (:require [clojang.core :as clojang :refer [! receive self]]
             [clojang.node :as node]
             [clojang.mbox :as mbox]
+            [clojure.core.async :as async]
             [clojure.core.match :refer [match]]
             [clojure.tools.logging :as log]
             [clojusc.twig :as logger])
