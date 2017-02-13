@@ -10,7 +10,8 @@
 
 (defn register
   [server-data]
-  (async/>!! (get-in server-data [:bridge :channel]) :register))
+  (async/>!! (get-in server-data [:bridge :channel]) :register)
+  :ok)
 
 (defn ping
   [server-data]
@@ -24,7 +25,8 @@
 
 (defn stop
   [server-data]
-  (async/>!! (get-in server-data [:bridge :channel]) :stop))
+  (async/>!! (get-in server-data [:bridge :channel]) :stop)
+  :ok)
 
 (defn shutdown
   [server-data]
@@ -32,4 +34,5 @@
   (log/info "Shutting down ...")
   (mbox/close (get-in server-data [:bridge :mbox]))
   (async/close! (get-in server-data [:bridge :channel]))
-  (async/close! (:command server-data)))
+  (async/close! (:command server-data))
+  :ok)

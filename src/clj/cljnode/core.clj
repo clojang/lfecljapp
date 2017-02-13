@@ -33,6 +33,7 @@
      :channel bridge-chan}))
 
 (defn start
+  "A wrapper function for server/run that first sets the logging level."
   [ch]
   (logger/set-level! '[clojang cljnode] :info)
   (server/run ch))
@@ -53,9 +54,7 @@
         (if-let [value (async/<! server-chan)]
           (log/infof "Server stopped with message '%s'" value)
           (recur)))
-      (do
-        (async/close! server-chan)
-        (async/>!! cmd-chan :shutdown)))
+      (async/>! cmd-chan :shutdown))
     ;; XXX create a loop that listens for messages on command channel
     {:command cmd-chan
      :server server-chan
