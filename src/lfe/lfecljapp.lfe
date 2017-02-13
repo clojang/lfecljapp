@@ -15,6 +15,10 @@
           (ping 3)))
 
 ;;;===================================================================
+;;; Configuration
+;;;===================================================================
+
+;;;===================================================================
 ;;; API
 ;;;===================================================================
 
@@ -24,30 +28,25 @@
   ext-port-ref)
 
 (defun server-name () (MODULE))
-;; The following is needed by eunit.hrl
-(defun FILE () (++ (atom_to_list (MODULE)) ".lfe"))
 
 (defun start ()
   (start_link))
 
 (defun start_link ()
   (gen_server:start_link
-     (tuple 'local (server-name)) (MODULE) '() '()))
+     `#(local ,(server-name)) (MODULE) '() '()))
 
-(defun init (args)
-  (let ((port (start-clojure)))
+(defun init (_args)
+  (let ((port (lein-node:start)))
     (gen_server:cast (self) 'ping)
-    (tuple 'ok (make-state ext-port-ref port))))
+    `#(ok ,(make-state ext-port-ref port))))
 
-;; only for testing
 (defun stop (reason)
-  (gen_server:cast (server-name) (tuple 'stop-test reason)))
+  (gen_server:cast (server-name) `#(stop-test ,reason)))
 
-(defun ping (node mbox)
-  (lfeclj-util:ping
-    (list_to_atom mbox)
-    (list_to_atom node)
-    (self)))
+(defun ping (state this-pid)
+  (erlang:send (match-state-exp-port-ref state)
+               `#(ping ,this-pid)))
 
 (defun ping (host node mbox)
   (ping (lfeclj-util:make-name node host) mbox))
@@ -56,8 +55,8 @@
   (tuple 'reply 'ok state))
 
 (defun handle_cast
-  (((tuple 'stop-test reason) state)
-   (tuple 'stop reason state))
+  ((`#(stop-test ,reason) state)
+    `#(stop ,reason ,state))
   (('ping state)
    (let ((node (lfeclj-cfg:get 'node))
          (mbox (lfeclj-cfg:get 'mbox))
@@ -68,10 +67,10 @@
      (erlang:send_after (lfeclj-cfg:get 'ping-interval)
                         (self)
                         'ping)
-     (tuple 'noreply state)))
+     `#(noreply ,state)))
   ((message state)
-   (logjam:err "Unhandled case: '~p'" `(,message))
-   (tuple 'noreply state)))
+    (logjam:err "Unhandled case: '~p'" `(,message))
+    `#(noreply ,state)))
 
 (defun handle_info
   (('ping (= (match-state remote-pid 'undefined) state))
@@ -79,31 +78,30 @@
     `#(noreply ,state))
   (('ping state)
    `#(noreply ,state))
-  (((tuple 'pong pid) (= (match-state remote-pid 'undefined
-                                      waiters waiters)
-                         state))
-   (logjam:info "Connection to java node established, pid: ~p" `(,pid))
-   (link pid)
-   (lists:foreach
-     (lambda (x)
-       (gen_server:cast (self) `#(wait-for-login x)))
-     waiters)
+  ((`#(pong ,pid) (= (match-state remote-pid 'undefined waiters waiters)
+                     state))
+    (logjam:info "Connection to java node established, pid: ~p" `(,pid))
+    (link pid)
+    (lists:foreach
+      (lambda (x)
+        (gen_server:cast (self) `#(wait-for-login ,x)))
+      waiters)
    `#(noreply ,(make-state remote-pid pid
                            waiters waiters
                            ext-port-ref (state-ext-port-ref))))
-  (((tuple 'pong _) state)
-   `#(noreply ,state))
-  (((tuple port (tuple 'exit_status status)) (= (match-state ext-port-ref ext-port)
-                                                state)) (when (== port ext-port))
-   (logjam:err "External java app exited with status: '~p'" `(,status))
-   `#(stop #(error #(java-app-exit ,status)) ,state))
-  (((tuple 'EXIT pid reason) (= (match-state remote-pid remote-pid)
-                                state)) (when (== pid remote-pid))
-   (logjam:err "External java mbox exited with reason: '~p'" `(,reason))
-   `#(stop #(error #(java-mbox-exit ,reason)) ,state))
+  ((`#(pong ,_) state)
+    `#(noreply ,state))
+  ((`#(,port #(exit_status ,status)) (= (match-state ext-port-ref ext-port)
+                                        state)) (when (== port ext-port))
+    (logjam:err "External java app exited with status: '~p'" `(,status))
+    `#(stop #(error #(java-app-exit ,status)) ,state))
+  ((`#(EXIT ,pid ,reason) (= (match-state remote-pid remote-pid)
+                             state)) (when (== pid remote-pid))
+    (logjam:err "External java mbox exited with reason: '~p'" `(,reason))
+    `#(stop #(error #(java-mbox-exit ,reason)) ,state))
   ((info state)
-   (logjam:err "Unhandled info: '~p'" `(,info))
-   `#(noreply ,state)))
+    (logjam:err "Unhandled info: '~p'" `(,info))
+    `#(noreply ,state)))
 
 (defun terminate (reason state)
   'ok)

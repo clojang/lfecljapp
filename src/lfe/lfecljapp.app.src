@@ -1,19 +1,8 @@
 {application, lfecljapp,
- [
-  {description, "LFE-Clojure (JVM) Interop using JInterface"},
+ [{description, "LFE-Clojure (JVM) Interop using JInterface"},
   {vsn, "0.4.0"},
   {registered, []},
-  {applications, [
-                  kernel,
-                  stdlib
-                 ]},
+  {applications, [kernel,stdlib]},
   {mod, {'lfeclj-app', []}},
-  {env, [
-            {cmd, "cljnode-0.3.0-standalone.jar cljnode.core"},
-            {node, "clj-node"},
-            {mbox, "clj-mbox"},
-            {host, undefined},
-            {'epmd-port', "15000"},
-            {'ping-interval', 1000}
-        ]}
+  {env, []}
  ]}.
