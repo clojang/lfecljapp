@@ -38,6 +38,11 @@
             (log/warnf "Got :stop request from %s ..." caller)
             (! caller :stopping)
             :stopped)
+        [:shutdown caller]
+          (do
+            (log/warnf "Got :shutdown request from %s ..." caller)
+            (! caller :shutting-down)
+            (async/>! cmd-chan :shutdown))
         [_ caller]
           (do
             (log/error "Bad message received: unknown command")
