@@ -166,7 +166,15 @@ pong
 ```
 
 If you take a peek back over in the Clojure terminal, you should see log
-messages for each of those API calls.
+messages for each of those API calls:
+
+```clj
+2017-02-14 00:44:06,717 [async-thread-macro-2] INFO  cljnode.server - Got :ping ...
+2017-02-14 00:44:07,623 [async-thread-macro-2] INFO  cljnode.server - Got :ping ...
+2017-02-14 00:44:08,599 [async-thread-macro-2] INFO  cljnode.server - Got :ping ...
+2017-02-14 00:44:13,694 [async-thread-macro-2] INFO  cljnode.server - Got :ping ...
+2017-02-14 00:44:15,338 [async-thread-macro-2] INFO  cljnode.server - Got :get-ping-count ...
+```
 
 
 ## Fun for the Future
