@@ -1,0 +1,30 @@
+{application, lfecljapp,
+ [{description, "LFE Node App in an LFE/OTP/Clojure System"},
+  {vsn, "0.4.0"},
+  {modules,
+   [api,
+    'lfeclj-app',
+    'lfeclj-cfg',
+    'lfeclj-sup',
+    'lfeclj-util',
+    lfecljapp]},
+  {registered, [lfecljapp]},
+  {applications,
+   [kernel,
+    stdlib
+   ]},
+  {mod, {'lfeclj-app', []}},
+
+  {included_applications, []},
+  {env, []},
+
+  %% Package metadata:
+  {pkg_name, lfecljapp},
+  {maintainers, ["Duncan McGreggor"]},
+  {licenses, ["Apache-2"]},
+  {links,
+   [{"GitHub", "https://github.com/clojang/lfecljapp"},
+    {"Gitlab", "https://gitlab.com/clojang/lfecljapp"},
+    {"Hex", "https://hex.pm/packages/lfecljapp"}
+   ]}
+]}.
