@@ -7,10 +7,10 @@ lfe-build: priv
 check:
 	rebar3 as test lfe test -t unit
 
-lfe-repl: compile
+lfe-repl: lfe-build
 	@$(LFE) \
 	-sname "lfenode@$(HOST)" \
-	-pa `rebar3 as dev path -s " -pa "`
+	-pa `rebar3 path -s " -pa "`
 
 lfe-server:
 	echo TBD
