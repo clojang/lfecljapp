@@ -201,6 +201,112 @@ The end result will be the same:
 ```
 
 
+## Example Code
+
+### Clojure Server
+
+```clj
+(defn run
+  [cmd-chan]
+  (log/info "Starting Clojure node with nodename ="
+            (System/getProperty "node.sname"))
+  (let [init-state 0]
+    (loop [png-count init-state]
+      (match (receive)
+        [:register caller]
+          (do
+            (log/infof "Got :register request from %s ..." caller)
+            (mbox/link (self) caller)
+            (! caller :linked)
+            (recur png-count))
+        [:ping caller]
+          (do
+            (log/infof "Got :ping request from %s ..." caller)
+            (! caller :pong)
+            (recur (inc png-count)))
+        [:get-ping-count caller]
+          (do
+            (log/infof "Got :get-ping-count request from %s ..."  caller)
+            (! caller png-count)
+            (recur png-count))
+        [:stop caller]
+          (do
+            (log/warnf "Got :stop request from %s ..." caller)
+            (! caller :stopping)
+            :stopped)
+        [:shutdown caller]
+          (do
+            (log/warnf "Got :shutdown request from %s ..." caller)
+            (! caller :shutting-down)
+            (async/>! cmd-chan :shutdown))
+        [_ caller]
+          (do
+            (log/error "Bad message received: unknown command")
+            (! caller [:error :unknown-command])
+            (recur png-count))
+        [_]
+          (do
+            (log/error "Bad message received: improperly formatted")
+            (recur png-count))))))
+```
+
+
+### Clojure API
+
+```clj
+(defn send-only
+  [server-data msg]
+  (async/>!! (get-in server-data [:bridge :channel]) msg)
+  :ok)
+
+(defn send-and-receive
+  [server-data msg]
+  (send-only server-data msg)
+  (receive (get-in server-data [:bridge :mbox])))
+
+(defn register
+  [server-data]
+  (send-only server-data :register))
+
+(defn ping
+  [server-data]
+  (send-and-receive server-data :ping))
+
+(defn get-ping-count
+  [server-data]
+  (send-and-receive server-data :get-ping-count))
+
+(defn stop
+  [server-data]
+  (send-and-receive server-data :stop))
+```
+
+
+### LFE API
+
+```cl
+(defun send-only (node-name msg)
+  (! `#(default ,node-name) `#(,msg ,(self))))
+
+(defun send-and-receive (node-name msg)
+  (send-only node-name msg)
+  (receive
+    (data data)))
+
+(defun register (node-name)
+  (send-only node-name 'register))
+
+(defun ping (node-name)
+  (send-and-receive node-name 'ping))
+
+(defun get-ping-count (node-name)
+  (send-and-receive node-name 'get-ping-count))
+
+(defun stop (node-name)
+  (send-and-receive node-name 'stop))
+```
+
+
 ## Fun for the Future
 
 Here are some things I'd like to play with in this project:
