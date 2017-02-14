@@ -4,7 +4,7 @@
 <img src="resources/images/LispFlavoredErlangClojure-small-square.png" />
 </a>
 
-*LFE-Clojure (JVM) Interop using JInterface*
+*An Example LFE/Clojure Multi-node System using OTP*
 
 
 ## Introduction
