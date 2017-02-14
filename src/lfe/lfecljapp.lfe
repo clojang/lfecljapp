@@ -45,8 +45,7 @@
   (gen_server:cast (server-name) `#(stop-test ,reason)))
 
 (defun ping (state this-pid)
-  (erlang:send (match-state-exp-port-ref state)
-               `#(ping ,this-pid)))
+  'TBD)
 
 (defun ping (host node mbox)
   (ping (lfeclj-util:make-name node host) mbox))
