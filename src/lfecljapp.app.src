@@ -1,5 +1,5 @@
 {application, lfecljapp,
- [{description, "LFE Node App in an LFE/OTP/Clojure System"},
+ [{description, "LFE Node app in an LFE/OTP/Clojure System"},
   {vsn, "0.4.0"},
   {modules,
    [api,

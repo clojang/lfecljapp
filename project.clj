@@ -1,5 +1,5 @@
 (defproject cljnode "0.4.0-SNAPSHOT"
-  :description "Clojure Node App in an LFE/OTP System"
+  :description "Clojure Node app in an LFE/OTP/Clojure System"
   :url "https://github.com/clojang/lfecljapp"
   :license {
     :name "Apache License, Version 2.0"
