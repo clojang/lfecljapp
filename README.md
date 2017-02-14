@@ -6,6 +6,7 @@
 
 *LFE-Clojure (JVM) Interop using JInterface*
 
+
 ## Introduction
 
 This project is a port of Maxim Molchanov's example Erlang + Clojure interop
@@ -14,29 +15,32 @@ The Erlang code was completely replaced with LFE.
 
 This project demonstrates how one can:
 
-1. Create a Clojure project which utilizes Erlang JInterface to communicate
-   with LFE nodes,
+1. Create a Clojure project which communicates with LFE/Erlang nodes
+   utilizing [Clojang](https://github.com/clojang/clojang)
+   (an Erlang JInterface wrapper)
 1. Start a supervised Clojure node in LFE,
-1. Send a message to Clojure nodes from LFE, and
-1. Receive responses from the Clojure nodes in LFE.
+1. Send messages to Clojure nodes from LFE
+1. Send messages to Clojure nodes from Clojure
+1. Send messages to LFE from Clojure
+1. Receive and respond to all messages in both Clojure and LFE
 
 
 ### Dependencies
 
-#### LFE Side of the House
+For LFE:
 
 * Erlang
-* ``lfetool`` + ``rebar``
+* ``rebar3``
 
-#### Clojure Side of the House
+For Clojure:
 
 * Java
 * ``lein``
 
 ## Building
 
-To get started, build the Clojure Uberjar for ``cljnode`` and compile the
-Erlang source files:
+To get started, compile the LFE source files for `lfenode` and build the
+Clojure uberjar for `cljnode`:
 
 ```bash
 $ make compile
@@ -44,67 +48,126 @@ $ make compile
 
 ## Running
 
-Once everything has compiled successfully, you can start an Erlang shell and
+We'll examine two ways of running our application nodes:
+
+* As daemons (non-OTP release)
+* From the LFE and Clojure REPLs
+
+
+### As daemons
+
+Once everything has compiled successfully, you can start an LFE REPL and
 then bring the app up:
 
+```
+TBD
+```
+
+### From the REPLs
+
+During active development it's useful to be able to run your code in a REPL.
+Below we show how to do that in the case of `lfecljapp`, starting the two two
+servers up from their respective REPLs for easy interaction.
+
+
+#### 1. Start the Clojure REPL
+
+Start the Clojure REPL and then start the Clojure node's server:
+
 ```bash
-$ make repl
+$ make clojure-repl
+```
+```
+2017-02-12 18:59:34,080 [main] INFO  clojang.agent.startup - Bringing up ...
+2017-02-12 18:59:34,267 [main] INFO  clojang.agent.startup - Registered nodes ...
+nREPL server started on port 34904 on host 127.0.0.1 - nrepl://127.0.0.1:34904
+REPL-y 0.3.7, nREPL 0.2.12
+Clojure 1.8.0
+OpenJDK 64-Bit Server VM 1.8.0_121-8u121-b13-0ubuntu1.16.04.2-b13
+    Docs: (doc function-name-here)
+          (find-doc "part-of-name-here")
+  Source: (source function-name-here)
+ Javadoc: (javadoc java-object-or-class-here)
+    Exit: Control+D or (exit) or (quit)
+ Results: Stored in vars *1, *2, *3, an exception in *e
+
+cljnode.core=>
 ```
 
-```lfe
-(lfenode@cahwsx01)> (lfeclj-app:start)
-ok
+
+#### 2. Start the Clojure Server
+
+```clj
+cljnode.core=> (def server-data (managed-server))
+2017-02-13 17:42:23,386 [async-thread-macro-2] INFO  cljnode.server - Starting ...
+#'cljnode.core/server-data
 ```
 
-Alternatively, you can use the ``dev`` make target which will start the
-lfecljapp for you automatically:
+
+#### 3. Use the Clojure Server API
+
+Now let's talk to our Clojure server using the Clojure API we created (see
+`src/clj/cljnode/api.clj`):
+
+```clj
+cljnode.core=> (api/ping server-data)
+2017-02-13 17:43:00,081 [async-thread-macro-1] INFO  cljnode.server - Got :ping ...
+:pong
+cljnode.core=> (api/ping server-data)
+2017-02-13 17:43:00,947 [async-thread-macro-1] INFO  cljnode.server - Got :ping ...
+:pong
+cljnode.core=> (api/ping server-data)
+2017-02-13 17:43:01,632 [async-thread-macro-1] INFO  cljnode.server - Got :ping ...
+:pong
+cljnode.core=> (api/ping server-data)
+2017-02-13 17:43:02,377 [async-thread-macro-1] INFO  cljnode.server - Got :ping ...
+:pong
+cljnode.core=> (api/get-ping-count server-data)
+2017-02-13 17:43:07,113 [async-thread-macro-1] INFO  cljnode.server - Got :get-ping-count ...
+4
+```
+
+
+#### 4. Start LFE
 
 ```bash
-$ make dev
+$ make lfe-repl
+```
+```
+Erlang/OTP 18 [erts-7.3] [source] [64-bit] [smp:4:4] [async-threads:10] ...
+
+   ..-~.~_~---..
+  (      \\     )    |   A Lisp-2+ on the Erlang VM
+  |`-.._/_\\_.-':    |   Type (help) for usage info.
+  |         g |_ \   |
+  |        n    | |  |   Docs: http://docs.lfe.io/
+  |       a    / /   |   Source: http://github.com/rvirding/lfe
+   \     l    |_/    |
+    \   r     /      |   LFE v1.3-dev (abort with ^G)
+     `-E___.-'
+
+(lfenode@liberator)lfe>
 ```
 
-Once the app has started, you will see output like the following (elided):
 
-```
-(lfenode@cahwsx01)>
-14:03:52.849 [info] Application lager started on node lfenode@cahwsx01
-14:03:52.855 [info] Starting clojure app with cmd: "java ..."
-```
-
-At this point, you are in the shell, and before too long you should also see
-a log message display showing the successful start of the Clojure node:
-
-```
-14:03:52.856 [info] Application lfecljapp started on node lfenode@cahwsx01
-14:03:55.898 [info] Connection to java node established, pid: <11113.1.0>
-```
-
-## Using
-
-Now that you've got both ends of the connection up, you can take it for a
-spin with a ping command:
+#### 5. Use the LFE Client API (for the Clojure Server)
 
 ```cl
-(lfenode@cahwsx01)> (lfecljapp:ping "clj-node@cahwsx01" "clj-mbox")
-#(ping <0.83.0>)
+(lfenode@liberator)lfe> (api:ping 'cljnode@liberator)
+pong
+(lfenode@liberator)lfe> (api:ping 'cljnode@liberator)
+pong
+(lfenode@liberator)lfe> (api:ping 'cljnode@liberator)
+pong
+(lfenode@liberator)lfe> (api:ping 'cljnode@liberator)
+pong
+(lfenode@liberator)lfe> (api:get-ping-count 'cljnode@liberator)
+8
 ```
 
-The node name used in the example above was taken from the output when the
-Clojure node was started up. In particular, look for the line beginning with
-``INFO: Starting clojure app ...`` and the value associated with the ``-Dnode``
-parameter. That's your destination node in this case.
+If you take a peek back over in the Clojure terminal, you should see log
+messages for each of those API calls.
 
-To see the response from the Clojure node, you'll need to flush the shell,
-since the Clojure port sends its responses to the caller, and in this case the
-caller is the LFE REPL:
-
-```cl
-(lfenode@cahwsx01)> (c:flush)
-Shell got {pong,<11113.1.0>}
-ok
-```
-
-Hurray! A successful response from the Clojure node!
 
 ## Fun for the Future
 
@@ -114,14 +177,3 @@ Here are some things I'd like to play with in this project:
 * Spawn multiple nodes and distribute computations across an LFE cluster.
 * Use ``lfecljapp`` as a proxy to a Storm cluster, and explores ways in which
   it might be useful to interact with Storm from LFE.
-
-Here are some more... not for the squeamish or those with heart conditions.
-Also, I'm cackling (very quietly) to myself as I type this:
-
-* Add an LFE macro that defines/generates custom functions/boilerplate for the
-  code that is in ``lfecljapp.lfe`` but for any basic operation/communication
-  that you may want to have with your Clojure process.
-* Add a *Clojure* macro that defines/generates the code on the Clojure side of
-  the house for communicating with Erlang processes.
-
-
