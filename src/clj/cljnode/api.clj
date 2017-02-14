@@ -5,28 +5,38 @@
             [clojure.tools.logging :as log]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;   Support Functions   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn send-only
+  [server-data msg]
+  (async/>!! (get-in server-data [:bridge :channel]) msg)
+  :ok)
+
+(defn send-and-receive
+  [server-data msg]
+  (send-only server-data msg)
+  (receive (get-in server-data [:bridge :mbox])))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;   API   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn register
   [server-data]
-  (async/>!! (get-in server-data [:bridge :channel]) :register)
-  :ok)
+  (send-only server-data :register))
 
 (defn ping
   [server-data]
-  (async/>!! (get-in server-data [:bridge :channel]) :ping)
-  (receive (get-in server-data [:bridge :mbox])))
+  (send-and-receive server-data :ping))
 
 (defn get-ping-count
   [server-data]
-  (async/>!! (get-in server-data [:bridge :channel]) :get-ping-count)
-  (receive (get-in server-data [:bridge :mbox])))
+  (send-and-receive server-data :get-ping-count))
 
 (defn stop
   [server-data]
-  (async/>!! (get-in server-data [:bridge :channel]) :stop)
-  :ok)
+  (send-and-receive server-data :stop))
 
 (defn shutdown
   [server-data]
