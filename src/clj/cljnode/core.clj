@@ -49,17 +49,17 @@
     3. OTP/core.async bridge data."
   []
   (let [cmd-chan (async/chan)
-        server-chan (async/thread (start cmd-chan))]
+        server-chan (async/thread (start cmd-chan))
+        server-data {:command cmd-chan
+                     :server server-chan
+                     :bridge (otp-bridge)}]
     (async/go
       (loop []
         (if-let [value (async/<! server-chan)]
           (log/infof "Server stopped with message '%s'" value)
           (recur)))
       (async/>! cmd-chan :shutdown))
-    ;; XXX create a loop that listens for messages on command channel
-    {:command cmd-chan
-     :server server-chan
-     :bridge (otp-bridge)}))
+    server-data))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;   Main Function   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
