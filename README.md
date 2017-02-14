@@ -4,7 +4,7 @@
 <img src="resources/images/LispFlavoredErlangClojure-small-square.png" />
 </a>
 
-*An Example LFE/Clojure Multi-node System using OTP*
+*An Example LFE/Clojure Multi-node System using OTP and Supervision Trees*
 
 
 ## Introduction
