@@ -11,13 +11,11 @@
   (application:load 'lfecljapp)
   (application:start 'lfecljapp))
 
-(defun start (type args)
+(defun start (_start-type _args)
   (let ((result (lfeclj-sup:start_link)))
     (case result
-      ((tuple 'ok pid)
-        result)
-      (_
-        (tuple 'error result)))))
+      (`#(ok ,pid) result)
+      (_`#(error ,result)))))
 
-(defun stop (state)
+(defun stop (_state)
   'ok)
