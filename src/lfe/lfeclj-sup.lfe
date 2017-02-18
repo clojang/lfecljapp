@@ -5,22 +5,55 @@
   ;; Supervisor callbacks
   (export (init 1)))
 
-(defun server-name ()
-  'lfeclj-sup)
+;;;===================================================================
+;;; State & Configuration
+;;;===================================================================
+
+(defun sup-name () (MODULE))
+(defun default-sup-flags
+  #m(strategy one_for_one
+     intensity 5
+     period 10))
+
+;;;===================================================================
+;;; Supervisor Implementation
+;;;===================================================================
 
 (defun start_link ()
-  (supervisor:start_link
-    (tuple 'local (server-name)) (MODULE) '()))
+  (start_link (sup-name) '()))
 
-(defun init (args)
-  (let* ((server (tuple
-                   'lfecljapp
-                   (tuple 'lfecljapp 'start_link '())
-                   'permanent
-                   5000
-                   'worker
-                   (list 'lfecljapp)
-                   ))
-         (children (list server))
-         (restart-strategy (tuple 'one_for_one 5 10)))
-    (tuple 'ok (tuple restart-strategy children))))
+(defun start_link (mod args)
+  (start_link `#(local, (sup-name)) mod args))
+
+(defun start_link (sup mod args)
+  (supervisor:start_link sup mod args))
+
+(defun stop ()
+  (exit (whereis (sup-name)) 'shutdown))
+
+;;;===================================================================
+;;; Callback Implementation
+;;;===================================================================
+
+(defun init (_args)
+  (let ((children `(,(make-child 'lfecljapp)
+                    ,(make-child 'lein-node))))
+    `#(ok #(,default-sup-flags children))))
+
+;;;===================================================================
+;;; Support Functions
+;;;===================================================================
+
+(defun make-child (mod)
+  (make-child mod 'start_link))
+
+(defun make-child (mod func)
+  (make-child mod func '()))
+
+(defun make-child (mod func args)
+  `#m(id ,mod
+      start #(,mod ,func ,args)
+      restart permanent
+      shutdown 5000
+      type worker
+      module (,mod)))
